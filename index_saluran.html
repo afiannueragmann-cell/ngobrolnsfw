@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Saluran</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef3f1;--surface:#fff;--ink:#17302b;--muted:#6b8079;--line:#d8e3df;
+  --brand:#0d7a67;--brand-ink:#fff;--danger:#c0392b;
+}
+@media(prefers-color-scheme:dark){
+:root{--bg:#0f1a18;--surface:#172622;--ink:#e6f1ee;--muted:#8aa39b;--line:#263b36;--brand:#2cc4a6;--brand-ink:#06231d}
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Figtree",system-ui,sans-serif;font-size:16px;line-height:1.45}
+h1,h2,h3{font-family:"Bricolage Grotesque","Figtree",sans-serif;margin:0}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+
+#join{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
+.join-card{width:100%;max-width:430px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:28px 24px}
+.join-card h1{font-size:2.4rem;font-weight:800;letter-spacing:-.02em}
+.join-card p.sub{color:var(--muted);margin:6px 0 22px}
+label{display:block;font-weight:600;margin:14px 0 6px}
+input[type=text],textarea{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--line);border-radius:12px}
+.hint{color:var(--muted);font-size:.88rem;margin-top:6px}
+.btn{width:100%;margin-top:20px;padding:13px 16px;background:var(--brand);color:var(--brand-ink);border:0;border-radius:12px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);margin-top:10px}
+.btn:active{transform:scale(.99)}
+#configWarn{display:none;margin-top:16px;padding:12px 14px;background:#fff3cd;color:#5c4600;border-radius:12px;font-size:.9rem}
+
+#channel{display:none;height:100%;flex-direction:column;max-width:760px;margin:0 auto;background:var(--bg)}
+header{display:flex;align-items:center;gap:10px;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top,0px));background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header .title{flex:1;min-width:0}
+header h2{font-size:1.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .meta{color:var(--muted);font-size:.82rem}
+.icon-btn{background:transparent;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:.85rem}
+.owner-badge{display:none;font-size:.72rem;background:var(--brand);color:var(--brand-ink);padding:3px 7px;border-radius:99px;margin-left:5px}
+
+#feed{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.empty{margin:auto;color:var(--muted);text-align:center}
+.post{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.post-head{display:flex;align-items:center;gap:9px;padding:12px 13px 7px}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:800}
+.post-info{min-width:0;flex:1}
+.post-name{font-weight:700;font-size:.92rem}
+.post-time{font-size:.73rem;color:var(--muted)}
+.post-body{padding:4px 13px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.post-media{display:block;width:100%;max-height:520px;object-fit:contain;background:#000}
+.post-media.audio{width:calc(100% - 26px);margin:0 13px 12px;max-height:none;background:transparent}
+.post-actions{border-top:1px solid var(--line);padding:9px 13px;display:flex;align-items:center;gap:8px}
+.comment-count{color:var(--muted);font-size:.82rem}
+.comment-list{padding:0 13px 10px;display:flex;flex-direction:column;gap:7px}
+.comment{background:var(--bg);border-radius:11px;padding:7px 9px}
+.comment b{font-size:.8rem}
+.comment span{display:block;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.88rem}
+.comment-form{display:flex;gap:7px;padding:0 13px 13px}
+.comment-form input{flex:1;min-width:0;border-radius:18px;padding:9px 12px}
+.comment-form button{border:0;background:var(--brand);color:var(--brand-ink);border-radius:18px;padding:0 14px}
+.delete-post{display:none;border:0;background:transparent;color:var(--danger);font-size:.78rem}
+
+#ownerComposer{display:none;background:var(--surface);border-top:1px solid var(--line);padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.composer-row{display:flex;gap:7px;align-items:center}
+#postText{flex:1;min-height:42px;max-height:120px;resize:none;border-radius:18px;padding:10px 13px}
+.media-btn,.send-btn{border:0;border-radius:18px;height:42px;padding:0 13px}
+.media-btn{background:var(--bg);border:1px solid var(--line)}
+.send-btn{background:var(--brand);color:var(--brand-ink);font-weight:600}
+#fileInput{display:none}
+#selectedFile{display:none;font-size:.78rem;color:var(--muted);padding:6px 4px 0}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:.88rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+#toast.show{opacity:1}
+.progress{display:none;height:3px;background:var(--line);overflow:hidden;margin-top:7px;border-radius:99px}
+.progress i{display:block;height:100%;width:30%;background:var(--brand);animation:load 1s infinite}
+@keyframes load{0%{transform:translateX(-150%)}100%{transform:translateX(450%)}}
+</style>
+</head>
+<body>
+
+<section id="join">
+  <div class="join-card">
+    <h1>Saluran</h1>
+    <p class="sub">Buat atau masuk ke saluran. Hanya pembuat yang bisa membuat postingan.</p>
+
+    <label for="nameInput">Nama panggilan</label>
+    <input type="text" id="nameInput" maxlength="20" placeholder="Misal: Budi" autocomplete="off">
+
+    <label for="roomInput">Kode saluran</label>
+    <input type="text" id="roomInput" maxlength="30" placeholder="saluran-kita" autocomplete="off" autocapitalize="off">
+    <p class="hint">Orang lain yang masuk lewat kode/link ini hanya bisa melihat postingan dan memberi komentar.</p>
+
+    <button class="btn" id="joinBtn" type="button">Masuk saluran</button>
+    <button class="btn ghost" id="randomBtn" type="button">Buat saluran baru</button>
+    <div id="configWarn">Firebase Storage perlu diaktifkan agar foto, video, dan audio bisa dikirim. Tambahkan <b>storageBucket</b> pada firebaseConfig dan buat Storage Rules di Firebase Console.</div>
+  </div>
+</section>
+
+<section id="channel">
+  <header>
+    <div class="title">
+      <h2 id="roomTitle">saluran</h2>
+      <div class="meta"><span id="memberCount">menghubungkan…</span><span class="owner-badge" id="ownerBadge">PEMBUAT</span></div>
+    </div>
+    <button class="icon-btn" id="shareBtn" type="button">Bagikan</button>
+    <button class="icon-btn" id="leaveBtn" type="button">Keluar</button>
+  </header>
+
+  <main id="feed" aria-live="polite"></main>
+
+  <section id="ownerComposer">
+    <div class="composer-row">
+      <textarea id="postText" maxlength="2000" placeholder="Tulis postingan…"></textarea>
+      <button class="media-btn" id="mediaBtn" type="button">📎</button>
+      <button class="send-btn" id="postBtn" type="button">Post</button>
+    </div>
+    <input id="fileInput" type="file" accept="image/*,video/*,audio/*">
+    <div id="selectedFile"></div>
+    <div class="progress" id="uploadProgress"><i></i></div>
+  </section>
+</section>
+
+<div id="toast" role="status"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getDatabase, ref, push, set, remove, onChildAdded, onValue, onDisconnect,
+  query, limitToLast, serverTimestamp, off, runTransaction
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import {
+  getStorage, ref as storageRef, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+// =====================================================
+// FIREBASE CONFIG
+// storageBucket HARUS diisi sesuai Firebase Console.
+// Biasanya formatnya: nama-project.firebasestorage.app
+// =====================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyBOiwNIzSoJu8Ei-smou7nTVQm5spNZ-XM",
+  authDomain: "ngobrolnsfw.firebaseapp.com",
+  databaseURL: "https://ngobrolnsfw-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ngobrolnsfw",
+  storageBucket: "ngobrolnsfw.firebasestorage.app",
+  appId: "1:437335185432:web:1a4d1ead9f8c438f5b4b6d"
+};
+
+const $ = id => document.getElementById(id);
+const configured = !firebaseConfig.apiKey.startsWith("ISI_");
+let app=null, db=null, storage=null;
+if(configured){
+  app=initializeApp(firebaseConfig);
+  db=getDatabase(app);
+  try{ storage=getStorage(app); }catch(e){ storage=null; }
+}
+
+let myId=localStorage.getItem("saluran_id");
+if(!myId){
+  myId=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  localStorage.setItem("saluran_id",myId);
+}
+let myName=localStorage.getItem("saluran_name")||"";
+let room=null, postQuery=null, presenceRef=null, postListeners=new Map();
+let owner=false, selectedFile=null, lastPost=0;
+
+$("nameInput").value=myName;
+const urlRoom=new URLSearchParams(location.search).get("room");
+$("roomInput").value=urlRoom||"";
+if(!firebaseConfig.storageBucket) $("configWarn").style.display="block";
+
+const cleanRoom=s=>s.toLowerCase().trim().replace(/[^a-z0-9_-]/g,"-").replace(/-+/g,"-").slice(0,30);
+function toast(text){
+  const t=$("toast");t.textContent=text;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2200);
+}
+function fmtTime(ts){
+  if(!ts)return "";
+  return new Date(ts).toLocaleString("id-ID",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+}
+function scrollDown(){ $("feed").scrollTop=$("feed").scrollHeight; }
+function escapeText(v){return v==null?"":String(v)}
+
+function renderPost(data,key){
+  const old=document.querySelector(`[data-post="${CSS.escape(key)}"]`);
+  if(old) old.remove();
+  const post=document.createElement("article");
+  post.className="post";post.dataset.post=key;
+
+  const head=document.createElement("div");head.className="post-head";
+  const avatar=document.createElement("div");avatar.className="avatar";
+  avatar.textContent=(data.name||"?").charAt(0).toUpperCase();
+  const info=document.createElement("div");info.className="post-info";
+  const name=document.createElement("div");name.className="post-name";name.textContent=data.name||"Anonim";
+  const time=document.createElement("div");time.className="post-time";time.textContent=fmtTime(data.ts);
+  info.append(name,time);head.append(avatar,info);
+
+  if(owner){
+    const del=document.createElement("button");del.className="delete-post";del.textContent="Hapus";
+    del.style.display=data.uid===myId?"block":"none";
+    del.onclick=async()=>{
+      if(confirm("Hapus postingan ini?")) await remove(ref(db,`channels/${room}/posts/${key}`));
+    };
+    head.appendChild(del);
+  }
+  post.appendChild(head);
+
+  if(data.text){
+    const body=document.createElement("div");body.className="post-body";body.textContent=data.text;post.appendChild(body);
+  }
+  if(data.mediaUrl){
+    let media;
+    if(data.mediaType==="image") media=document.createElement("img");
+    else if(data.mediaType==="video") media=document.createElement("video");
+    else media=document.createElement("audio");
+    media.src=data.mediaUrl;media.className="post-media "+(data.mediaType==="audio"?"audio":"");
+    media.controls=true;media.preload="metadata";
+    if(data.mediaType==="image") media.alt="Media postingan";
+    post.appendChild(media);
+  }
+
+  const actions=document.createElement("div");actions.className="post-actions";
+  const count=document.createElement("span");count.className="comment-count";count.textContent="0 komentar";
+  actions.appendChild(count);post.appendChild(actions);
+
+  const comments=document.createElement("div");comments.className="comment-list";comments.id=`comments-${key}`;
+  post.appendChild(comments);
+
+  const form=document.createElement("form");form.className="comment-form";
+  const input=document.createElement("input");input.type="text";input.maxLength=500;input.placeholder="Tulis komentar…";input.autocomplete="off";
+  const btn=document.createElement("button");btn.type="submit";btn.textContent="Kirim";
+  form.append(input,btn);
+  form.onsubmit=async e=>{
+    e.preventDefault();const text=input.value.trim();if(!text)return;
+    btn.disabled=true;
+    try{
+      await push(ref(db,`channels/${room}/posts/${key}/comments`),{uid:myId,name:myName,text:text.slice(0,500),ts:serverTimestamp()});
+      input.value="";
+    }catch(err){toast("Gagal mengirim komentar");}
+    btn.disabled=false;
+  };
+  post.appendChild(form);
+
+  $("feed").appendChild(post);
+  if(data.ts) scrollDown();
+  listenComments(key,count,comments);
+}
+
+function listenComments(key,count,box){
+  if(postListeners.has(key)) off(postListeners.get(key));
+  const q=query(ref(db,`channels/${room}/posts/${key}/comments`),limitToLast(50));
+  postListeners.set(key,q);
+  let n=0;
+  onChildAdded(q,snap=>{
+    const c=snap.val();n++;
+    const el=document.createElement("div");el.className="comment";
+    const b=document.createElement("b");b.textContent=c.name||"Anonim";
+    const sp=document.createElement("span");sp.textContent=c.text||"";
+    el.append(b,sp);box.appendChild(el);
+    count.textContent=n+" komentar"+(n===1?"":"");
+  });
+}
+
+async function ensureOwner(){
+  const ownerRef=ref(db,`channels/${room}/ownerUid`);
+  const result=await runTransaction(ownerRef,current=>current||myId);
+  owner=result.snapshot.val()===myId;
+  $("ownerComposer").style.display=owner?"block":"none";
+  $("ownerBadge").style.display=owner?"inline-block":"none";
+  return owner;
+}
+
+async function joinRoom(){
+  if(!configured){toast("Firebase belum diatur");return}
+  const name=$("nameInput").value.trim().slice(0,20);
+  const r=cleanRoom($("roomInput").value||"lobby");
+  if(!name){toast("Isi nama dulu");$("nameInput").focus();return}
+  if(!r){toast("Kode saluran tidak valid");return}
+  myName=name;room=r;localStorage.setItem("saluran_name",myName);
+  history.replaceState(null,"","?room="+encodeURIComponent(room));
+
+  $("join").style.display="none";$("channel").style.display="flex";
+  $("roomTitle").textContent="# "+room;$("feed").innerHTML="";
+  const empty=document.createElement("div");empty.className="empty";empty.textContent="Belum ada postingan.";$("feed").appendChild(empty);
+
+  try{await ensureOwner()}catch(e){toast("Tidak bisa menentukan pembuat saluran");return}
+
+  postQuery=query(ref(db,`channels/${room}/posts`),limitToLast(100));
+  onChildAdded(postQuery,snap=>{
+    const empty=$("feed").querySelector(".empty");if(empty)empty.remove();
+    renderPost(snap.val(),snap.key);
+  });
+
+  presenceRef=ref(db,`channels/${room}/online/${myId}`);
+  await set(presenceRef,{name:myName,ts:serverTimestamp()});
+  onDisconnect(presenceRef).remove();
+  onValue(ref(db,`channels/${room}/online`),snap=>{
+    const n=snap.exists()?Object.keys(snap.val()).length:0;
+    $("memberCount").textContent=n+" orang melihat";
+  });
+}
+
+function leaveRoom(){
+  if(postQuery)off(postQuery);
+  if(room)off(ref(db,`channels/${room}/online`));
+  for(const q of postListeners.values())off(q);
+  postListeners.clear();
+  if(presenceRef)remove(presenceRef);
+  room=null;owner=false;selectedFile=null;
+  $("fileInput").value="";$("selectedFile").style.display="none";
+  history.replaceState(null,"",location.pathname);
+  $("channel").style.display="none";$("join").style.display="flex";
+}
+
+function mediaType(file){
+  if(file.type.startsWith("image/"))return"image";
+  if(file.type.startsWith("video/"))return"video";
+  if(file.type.startsWith("audio/"))return"audio";
+  return null;
+}
+
+$("mediaBtn").onclick=()=>{if(owner)$("fileInput").click()};
+$("fileInput").onchange=()=>{
+  const f=$("fileInput").files[0];if(!f)return;
+  const type=mediaType(f);
+  if(!type){toast("File harus foto, video, atau audio");return}
+  const max=type==="video"?100*1024*1024:25*1024*1024;
+  if(f.size>max){toast(type==="video"?"Video maksimal 100 MB":"File maksimal 25 MB");$("fileInput").value="";return}
+  selectedFile=f;$("selectedFile").style.display="block";
+  $("selectedFile").textContent="📎 "+f.name+" ("+(f.size/1024/1024).toFixed(1)+" MB)";
+};
+
+async function makePost(){
+  if(!owner||!room)return;
+  const text=$("postText").value.trim();
+  if(!text&&!selectedFile){toast("Tulis sesuatu atau pilih media");return}
+  const now=Date.now();
+  if(now-lastPost<1000){toast("Tunggu sebentar");return}
+  lastPost=now;
+  const postBtn=$("postBtn");postBtn.disabled=true;
+  $("uploadProgress").style.display="block";
+  try{
+    let mediaUrl="",type="";
+    if(selectedFile){
+      if(!storage){throw new Error("storage")}
+      type=mediaType(selectedFile);
+      const path=`channels/${room}/${myId}/${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
+      const snap=await uploadBytes(storageRef(storage,path),selectedFile,{contentType:selectedFile.type});
+      mediaUrl=await getDownloadURL(snap.ref);
+    }
+    await push(ref(db,`channels/${room}/posts`),{
+      uid:myId,name:myName,text:text.slice(0,2000),mediaUrl,mediaType:type,ts:serverTimestamp()
+    });
+    $("postText").value="";$("fileInput").value="";selectedFile=null;$("selectedFile").style.display="none";
+  }catch(e){
+    console.error(e);toast("Gagal post. Cek Firebase Storage Rules/config.");
+  }finally{
+    $("uploadProgress").style.display="none";postBtn.disabled=false;
+  }
+}
+
+$("postBtn").onclick=makePost;
+$("postText").addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter")makePost()});
+$("joinBtn").onclick=joinRoom;
+$("roomInput").addEventListener("keydown",e=>{if(e.key==="Enter")joinRoom()});
+$("nameInput").addEventListener("keydown",e=>{if(e.key==="Enter")joinRoom()});
+$("randomBtn").onclick=()=>{
+  $("roomInput").value="saluran-"+Math.random().toString(36).slice(2,8);
+  joinRoom();
+};
+$("leaveBtn").onclick=leaveRoom;
+$("shareBtn").onclick=async()=>{
+  const link=location.origin+location.pathname+"?room="+encodeURIComponent(room);
+  try{
+    if(navigator.share)await navigator.share({title:"# "+room,text:"Gabung saluran aku",url:link});
+    else{await navigator.clipboard.writeText(link);toast("Link saluran disalin")}
+  }catch(_){}
+};
+</script>
+</body>
+</html>
