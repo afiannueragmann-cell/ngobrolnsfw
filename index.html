@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ngobrol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef3f1;
+    --surface: #ffffff;
+    --ink: #17302b;
+    --muted: #6b8079;
+    --line: #d8e3df;
+    --brand: #0d7a67;
+    --brand-ink: #ffffff;
+    --mine: #0d7a67;
+    --mine-ink: #ffffff;
+    --theirs: #ffffff;
+    --danger: #c0392b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1a18;
+      --surface: #172622;
+      --ink: #e6f1ee;
+      --muted: #8aa39b;
+      --line: #263b36;
+      --brand: #2cc4a6;
+      --brand-ink: #06231d;
+      --mine: #2cc4a6;
+      --mine-ink: #06231d;
+      --theirs: #1d302b;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Figtree", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  h1, h2 { font-family: "Bricolage Grotesque", "Figtree", sans-serif; margin: 0; }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+  /* ---------- Join screen ---------- */
+  #join {
+    min-height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .join-card {
+    width: 100%; max-width: 400px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 28px 24px;
+  }
+  .join-card h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; }
+  .join-card p.sub { color: var(--muted); margin: 6px 0 22px; }
+  label { display: block; font-weight: 600; margin: 14px 0 6px; }
+  input[type=text] {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .hint { color: var(--muted); font-size: .88rem; margin-top: 6px; }
+  .btn {
+    width: 100%; margin-top: 20px;
+    padding: 13px 16px;
+    background: var(--brand); color: var(--brand-ink);
+    border: 0; border-radius: 12px;
+    font-weight: 600; cursor: pointer;
+  }
+  .btn.ghost {
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--line); margin-top: 10px;
+  }
+  .btn:active { transform: scale(.99); }
+  #configWarn {
+    display: none; margin-top: 16px; padding: 12px 14px;
+    background: #fff3cd; color: #5c4600; border-radius: 12px; font-size: .9rem;
+  }
+
+  /* ---------- Chat screen ---------- */
+  #chat {
+    display: none;
+    height: 100%;
+    flex-direction: column;
+    max-width: 720px; margin: 0 auto;
+    background: var(--bg);
+  }
+  header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    padding-top: calc(12px + env(safe-area-inset-top, 0px));
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  header .title { flex: 1; min-width: 0; }
+  header h2 { font-size: 1.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  header .meta { color: var(--muted); font-size: .85rem; }
+  .icon-btn {
+    background: transparent; border: 1px solid var(--line);
+    border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: .9rem;
+  }
+  #messages {
+    flex: 1; overflow-y: auto;
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .empty { margin: auto; color: var(--muted); text-align: center; }
+  .msg { max-width: 82%; display: flex; flex-direction: column; }
+  .msg.mine { align-self: flex-end; align-items: flex-end; }
+  .msg .who { font-size: .8rem; color: var(--muted); margin: 6px 6px 2px; font-weight: 600; }
+  .bubble {
+    padding: 9px 13px;
+    background: var(--theirs);
+    border: 1px solid var(--line);
+    border-radius: 16px 16px 16px 4px;
+    overflow-wrap: anywhere; white-space: pre-wrap;
+  }
+  .msg.mine .bubble {
+    background: var(--mine); color: var(--mine-ink);
+    border-color: var(--mine);
+    border-radius: 16px 16px 4px 16px;
+  }
+  .time { font-size: .72rem; color: var(--muted); margin: 2px 6px 0; }
+  .sys { align-self: center; font-size: .8rem; color: var(--muted); padding: 4px 0; }
+
+  form#composer {
+    display: flex; gap: 8px;
+    padding: 10px 12px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+  }
+  form#composer input { flex: 1; border-radius: 22px; padding: 12px 16px; }
+  form#composer button {
+    background: var(--brand); color: var(--brand-ink);
+    border: 0; border-radius: 22px; padding: 0 20px; font-weight: 600; cursor: pointer;
+  }
+  #toast {
+    position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%);
+    background: var(--ink); color: var(--bg);
+    padding: 8px 14px; border-radius: 10px; font-size: .88rem;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- ======= HALAMAN MASUK ======= -->
+<section id="join">
+  <div class="join-card">
+    <h1>Ngobrol</h1>
+    <p class="sub">Chat langsung dengan temanmu atau orang baru.</p>
+
+    <label for="nameInput">Nama panggilan</label>
+    <input type="text" id="nameInput" maxlength="20" placeholder="Misal: Budi" autocomplete="off">
+
+    <label for="roomInput">Kode room</label>
+    <input type="text" id="roomInput" maxlength="30" placeholder="lobby" autocomplete="off" autocapitalize="off">
+    <p class="hint">Pakai <b>lobby</b> untuk ngobrol dengan orang acak. Buat kode sendiri (misal <b>geng-kita</b>) kalau mau room khusus temanmu.</p>
+
+    <button class="btn" id="joinBtn" type="button">Masuk room</button>
+    <button class="btn ghost" id="randomBtn" type="button">Buat room rahasia</button>
+
+    <div id="configWarn">Firebase belum diisi. Buka file <b>index.html</b>, cari <b>firebaseConfig</b>, lalu ganti dengan config dari proyek Firebase kamu.</div>
+  </div>
+</section>
+
+<!-- ======= HALAMAN CHAT ======= -->
+<section id="chat">
+  <header>
+    <div class="title">
+      <h2 id="roomTitle">lobby</h2>
+      <div class="meta" id="onlineCount">menghubungkan…</div>
+    </div>
+    <button class="icon-btn" id="shareBtn" type="button">Bagikan link</button>
+    <button class="icon-btn" id="leaveBtn" type="button">Keluar</button>
+  </header>
+
+  <div id="messages" aria-live="polite"></div>
+
+  <form id="composer" autocomplete="off">
+    <input type="text" id="msgInput" maxlength="500" placeholder="Tulis pesan…" aria-label="Pesan">
+    <button type="submit">Kirim</button>
+  </form>
+</section>
+
+<div id="toast" role="status"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getDatabase, ref, push, set, remove, onChildAdded, onValue, onDisconnect,
+    query, limitToLast, serverTimestamp, off
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  // =====================================================
+  //  GANTI BAGIAN INI dengan config dari Firebase kamu
+  //  (Project settings > General > Your apps > Web app)
+  // =====================================================
+  const firebaseConfig = {
+    apiKey: "ISI_API_KEY",
+    authDomain: "ISI_PROJECT.firebaseapp.com",
+    databaseURL: "https://ISI_PROJECT-default-rtdb.firebaseio.com",
+    projectId: "ISI_PROJECT",
+    appId: "ISI_APP_ID"
+  };
+  // =====================================================
+
+  const $ = (id) => document.getElementById(id);
+  const configured = !firebaseConfig.apiKey.startsWith("ISI_");
+  if (!configured) $("configWarn").style.display = "block";
+
+  let db = null;
+  if (configured) db = getDatabase(initializeApp(firebaseConfig));
+
+  // ID unik per perangkat (untuk bedakan pesan sendiri vs orang lain)
+  let myId = localStorage.getItem("ngobrol_id");
+  if (!myId) {
+    myId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem("ngobrol_id", myId);
+  }
+
+  let myName = localStorage.getItem("ngobrol_name") || "";
+  let room = null;
+  let msgQuery = null;
+  let presenceRef = null;
+  let lastSent = 0;
+  let firstLoad = true;
+
+  $("nameInput").value = myName;
+  const urlRoom = new URLSearchParams(location.search).get("room");
+  $("roomInput").value = urlRoom || "";
+
+  const cleanRoom = (s) =>
+    s.toLowerCase().trim().replace(/[^a-z0-9_-]/g, "-").replace(/-+/g, "-").slice(0, 30);
+
+  function toast(text) {
+    const t = $("toast");
+    t.textContent = text;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2000);
+  }
+
+  function fmtTime(ts) {
+    if (!ts) return "";
+    return new Date(ts).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function addSystem(text) {
+    const d = document.createElement("div");
+    d.className = "sys";
+    d.textContent = text;
+    $("messages").appendChild(d);
+  }
+
+  function scrollDown() {
+    const m = $("messages");
+    m.scrollTop = m.scrollHeight;
+  }
+
+  function addMessage(data) {
+    const box = $("messages");
+    const empty = box.querySelector(".empty");
+    if (empty) empty.remove();
+
+    const mine = data.uid === myId;
+    const wrap = document.createElement("div");
+    wrap.className = "msg" + (mine ? " mine" : "");
+
+    if (!mine) {
+      const who = document.createElement("div");
+      who.className = "who";
+      who.textContent = data.name || "Anonim";   // textContent = aman dari XSS
+      wrap.appendChild(who);
+    }
+    const b = document.createElement("div");
+    b.className = "bubble";
+    b.textContent = data.text;
+    wrap.appendChild(b);
+
+    const tm = document.createElement("div");
+    tm.className = "time";
+    tm.textContent = fmtTime(data.ts);
+    wrap.appendChild(tm);
+
+    box.appendChild(wrap);
+    scrollDown();
+  }
+
+  function joinRoom() {
+    if (!configured) { toast("Isi config Firebase dulu"); return; }
+    const name = $("nameInput").value.trim().slice(0, 20);
+    const r = cleanRoom($("roomInput").value || "lobby");
+    if (!name) { toast("Isi nama panggilan dulu"); $("nameInput").focus(); return; }
+    if (!r) { toast("Kode room tidak valid"); return; }
+
+    myName = name;
+    room = r;
+    localStorage.setItem("ngobrol_name", myName);
+    history.replaceState(null, "", "?room=" + encodeURIComponent(room));
+
+    $("join").style.display = "none";
+    $("chat").style.display = "flex";
+    $("roomTitle").textContent = room;
+    $("messages").innerHTML = "";
+    const e = document.createElement("div");
+    e.className = "empty";
+    e.textContent = "Belum ada pesan. Mulai duluan!";
+    $("messages").appendChild(e);
+    firstLoad = true;
+
+    // Pesan: 100 terakhir + yang baru masuk
+    msgQuery = query(ref(db, `rooms/${room}/messages`), limitToLast(100));
+    onChildAdded(msgQuery, (snap) => addMessage(snap.val()));
+
+    // Jumlah orang online
+    presenceRef = ref(db, `rooms/${room}/online/${myId}`);
+    set(presenceRef, { name: myName, ts: serverTimestamp() });
+    onDisconnect(presenceRef).remove();
+    onValue(ref(db, `rooms/${room}/online`), (snap) => {
+      const n = snap.exists() ? Object.keys(snap.val()).length : 0;
+      $("onlineCount").textContent = n + " orang online";
+    });
+
+    $("msgInput").focus();
+  }
+
+  function leaveRoom() {
+    if (msgQuery) off(msgQuery);
+    if (room) off(ref(db, `rooms/${room}/online`));
+    if (presenceRef) remove(presenceRef);
+    room = null;
+    history.replaceState(null, "", location.pathname);
+    $("chat").style.display = "none";
+    $("join").style.display = "flex";
+  }
+
+  async function sendMessage(e) {
+    e.preventDefault();
+    const input = $("msgInput");
+    const text = input.value.trim();
+    if (!text || !room) return;
+
+    const now = Date.now();
+    if (now - lastSent < 800) { toast("Pelan-pelan ya, jangan spam"); return; }
+    lastSent = now;
+
+    input.value = "";
+    try {
+      await push(ref(db, `rooms/${room}/messages`), {
+        uid: myId,
+        name: myName,
+        text: text.slice(0, 500),
+        ts: serverTimestamp()
+      });
+    } catch (err) {
+      toast("Gagal kirim. Cek koneksi atau aturan database.");
+      input.value = text;
+    }
+  }
+
+  $("joinBtn").addEventListener("click", joinRoom);
+  $("roomInput").addEventListener("keydown", (e) => { if (e.key === "Enter") joinRoom(); });
+  $("nameInput").addEventListener("keydown", (e) => { if (e.key === "Enter") joinRoom(); });
+
+  $("randomBtn").addEventListener("click", () => {
+    const code = "room-" + Math.random().toString(36).slice(2, 8);
+    $("roomInput").value = code;
+    joinRoom();
+  });
+
+  $("composer").addEventListener("submit", sendMessage);
+  $("leaveBtn").addEventListener("click", leaveRoom);
+
+  $("shareBtn").addEventListener("click", async () => {
+    const link = location.origin + location.pathname + "?room=" + encodeURIComponent(room);
+    try {
+      if (navigator.share) await navigator.share({ title: "Ngobrol", text: "Gabung chat aku", url: link });
+      else { await navigator.clipboard.writeText(link); toast("Link disalin"); }
+    } catch (_) { /* dibatalkan */ }
+  });
+</script>
+</body>
+</html>
